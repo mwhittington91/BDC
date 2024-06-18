@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import zipfile
 
+
 def combineFilesintoDB(
     extract_path: str = "./exports", db_path: str = "./.db", table_name: str = "Table 1"
 ):
@@ -25,8 +26,9 @@ def combineFilesintoDB(
 
     return "Files have been combined"
 
+
 def extractZip(response, file_id):
-    
+
     zip_path = f"/Users/mwhittington/Documents/Code/BDC/{file_id}.csv.zip"
     extract_path = "/Users/mwhittington/Documents/Code/BDC/exports"
 
@@ -40,3 +42,7 @@ def extractZip(response, file_id):
 
     # delete the zip file
     os.remove(path=zip_path)
+
+
+if __name__ == "__main__":
+    pass
