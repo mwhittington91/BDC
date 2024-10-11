@@ -2,6 +2,9 @@ import os
 import pandas as pd
 import sqlite3
 import zipfile
+from tqdm import tqdm
+import time
+import threading
 
 
 def combineFilesintoDB(
@@ -24,7 +27,56 @@ def combineFilesintoDB(
 
     conn.close()
 
-    return "Files have been combined"
+    return "Files have been combined into a SQLite database"
+
+# def combineFilesintoStata(
+#     extract_path: str = "./exports", stata_path: str = "./.dta"):
+#     frames = []
+#     for file in os.listdir(extract_path):
+#         # Load the CSV files into DataFrames
+#         df = pd.read_csv(f"{extract_path}/{file}", encoding="utf-8")
+#         frames.append(df)
+
+#     # Combine the DataFrames
+#     combined_df = pd.concat(frames, ignore_index=True)
+
+#     combined_df.to_stata(stata_path)
+
+#     return "Files have been combined into Stata format"
+#
+def combineFilesintoStata(
+    extract_path: str = "/Users/mwhittington/Library/CloudStorage/Box-Box/BDC 2023-12-31", stata_path: str = "./bdc.dta"):
+    frames = []
+    files = [f for f in os.listdir(extract_path) if f.endswith('.csv')]
+
+    # Progress bar for loading CSV files
+    for file in tqdm(files, desc="Loading CSV files"):
+        # Load the CSV files into DataFrames
+        df = pd.read_csv(f"{extract_path}/{file}", encoding="utf-8")
+        frames.append(df)
+
+    # Progress bar for combining DataFrames
+    with tqdm(total=len(frames), desc="Combining DataFrames") as pbar:
+        combined_df = pd.concat(frames, ignore_index=True)
+        pbar.update(len(frames))
+
+    # Progress bar for saving to Stata
+    def save_to_stata():
+        nonlocal combined_df
+        combined_df.to_stata(stata_path)
+
+    saving_thread = threading.Thread(target=save_to_stata)
+    saving_thread.start()
+
+    with tqdm(desc="Saving to Stata", unit="s") as pbar:
+        while saving_thread.is_alive():
+            pbar.update(1)
+            time.sleep(1)
+
+    saving_thread.join()
+
+    return "Files have been combined into Stata format"
+
 
 
 def extractZip(response, file_id):
@@ -45,4 +97,4 @@ def extractZip(response, file_id):
 
 
 if __name__ == "__main__":
-    pass
+    print(combineFilesintoStata())
