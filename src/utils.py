@@ -1,69 +1,70 @@
 import os
 import pandas as pd
+from pandas import DataFrame
 import sqlite3
 import zipfile
 from tqdm import tqdm
 import time
 import threading
 
+def combineCSVsintoDataFrame(
+    path: str = "./exports") -> DataFrame|None:
+    """ Combines all CSV files in a directory into a single DataFrame.
+    """
 
-def combineFilesintoDB(
-    extract_path: str = "./exports", db_path: str = "./.db", table_name: str = "Table 1"
-):
-    # combined_path = "/Users/mwhittington/Documents/Code/BDC/combined.csv"
+    column_types = {
+        "frn": "category",
+        "provider_id": "category",
+        "brand_name": "category",
+        "location_id": "int16",
+        "technology": "category",
+        "max_advertised_download_speed": "category",
+        "max_advertised_upload_speed": "category",
+        "low_latency": "category",
+        "business_residential_code": "category",
+        "state_usps": "category",
+        "block_geoid": "int32",
+        "h3_res8_id": "category"
+    }
+
     frames = []
+    files = [f for f in os.listdir(path) if f.endswith('.csv')]
 
-    for file in os.listdir(extract_path):
-        # Load the CSV files into DataFrames
-        df = pd.read_csv(f"{extract_path}/{file}", encoding="utf-8")
-        frames.append(df)
+    if len(files) == 0:
+        print("No CSV files found")
+        return None
+    else:
+        for file in tqdm(files, desc="Loading CSV files"):
+            # Load the CSV files into DataFrames
+            chunks = pd.read_csv(f"{path}/{file}", encoding="utf-8",chunksize=10000)
+            for chunk in chunks:
+                frames.append(chunk)
 
-    # Combine the DataFrames
-    combined_df = pd.concat(frames, ignore_index=True)
+        # Combine the DataFrames
+        combined_df = pd.concat(frames, ignore_index=True)
+        combined_df = combined_df.astype(column_types)
 
+        print("Files have been combined into a DataFrame")
+        return combined_df
+
+
+def dataFrametoSQL(
+    df:DataFrame, db_path: str = "./.db", table_name: str = "Table 1"
+):
     conn = sqlite3.connect(db_path)
 
-    combined_df.to_sql(table_name, conn, if_exists="replace", index=False)
+    df.to_sql(table_name, conn, if_exists="replace", index=False)
 
     conn.close()
 
     return "Files have been combined into a SQLite database"
 
-# def combineFilesintoStata(
-#     extract_path: str = "./exports", stata_path: str = "./.dta"):
-#     frames = []
-#     for file in os.listdir(extract_path):
-#         # Load the CSV files into DataFrames
-#         df = pd.read_csv(f"{extract_path}/{file}", encoding="utf-8")
-#         frames.append(df)
-
-#     # Combine the DataFrames
-#     combined_df = pd.concat(frames, ignore_index=True)
-
-#     combined_df.to_stata(stata_path)
-
-#     return "Files have been combined into Stata format"
-#
-def combineFilesintoStata(
-    extract_path: str = "/Users/mwhittington/Library/CloudStorage/Box-Box/BDC 2023-12-31", stata_path: str = "./bdc.dta"):
-    frames = []
-    files = [f for f in os.listdir(extract_path) if f.endswith('.csv')]
-
-    # Progress bar for loading CSV files
-    for file in tqdm(files, desc="Loading CSV files"):
-        # Load the CSV files into DataFrames
-        df = pd.read_csv(f"{extract_path}/{file}", encoding="utf-8")
-        frames.append(df)
-
-    # Progress bar for combining DataFrames
-    with tqdm(total=len(frames), desc="Combining DataFrames") as pbar:
-        combined_df = pd.concat(frames, ignore_index=True)
-        pbar.update(len(frames))
-
+def dataFrametoStata(
+    df:DataFrame, stata_path: str = "./bdc.dta"):
     # Progress bar for saving to Stata
     def save_to_stata():
-        nonlocal combined_df
-        combined_df.to_stata(stata_path)
+        nonlocal df
+        df.to_stata(stata_path)
 
     saving_thread = threading.Thread(target=save_to_stata)
     saving_thread.start()
@@ -81,8 +82,8 @@ def combineFilesintoStata(
 
 def extractZip(response, file_id):
 
-    zip_path = f"/Users/mwhittington/Documents/Code/BDC/{file_id}.csv.zip"
-    extract_path = "/Users/mwhittington/Documents/Code/BDC/exports"
+    zip_path = f"./{file_id}.csv.zip"
+    extract_path = "./exports"
 
     # Save the content to a file
     with open(zip_path, "wb") as file:
@@ -97,4 +98,5 @@ def extractZip(response, file_id):
 
 
 if __name__ == "__main__":
-    print(combineFilesintoStata())
+    box_path = "/Users/mwhittington/Library/CloudStorage/Box-Box/BDC 2023-12-31"
+    print(combineCSVsintoDataFrame(box_path))

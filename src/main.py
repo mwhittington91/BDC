@@ -11,7 +11,7 @@ async def main():
     for date in dates:
         print(date)
 
-    date = input(prompt="Enter a date (eg.2023-12-31): ")
+    date = input("Enter a date (eg.2023-12-31): ")
     # downloadList = await bdc.getDownloadList(date=date)
     # await bdc.downloadFiles(downloadList)
 
