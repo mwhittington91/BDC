@@ -10,8 +10,10 @@ import threading
 def combineCSVsintoDataFrame(
     path: str = "./exports") -> DataFrame|None:
     """ Combines all CSV files in a directory into a single DataFrame.
-    """
 
+    Args:
+        path (str): The path to the directory containing the CSV files.
+    """
     column_types = {
         "frn": "category",
         "provider_id": "category",
@@ -36,7 +38,7 @@ def combineCSVsintoDataFrame(
     else:
         for file in tqdm(files, desc="Loading CSV files"):
             # Load the CSV files into DataFrames
-            chunks = pd.read_csv(f"{path}/{file}", encoding="utf-8",chunksize=10000)
+            chunks = pd.read_csv(f"{path}/{file}", encoding="utf-8",chunksize=10000,index_col=False)
             for chunk in chunks:
                 frames.append(chunk)
 
@@ -95,8 +97,3 @@ def extractZip(response, file_id):
 
     # delete the zip file
     os.remove(path=zip_path)
-
-
-if __name__ == "__main__":
-    box_path = "/Users/mwhittington/Library/CloudStorage/Box-Box/BDC 2023-12-31"
-    print(combineCSVsintoDataFrame(box_path))

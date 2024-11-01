@@ -9,3 +9,5 @@ python-dotenv
 BeautifulSoup4
 openpyxl
 xlsxwriter
+supabase
+psycopg2-binary
