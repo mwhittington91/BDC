@@ -11,3 +11,4 @@ openpyxl
 xlsxwriter
 supabase
 psycopg2-binary
+tqdm
