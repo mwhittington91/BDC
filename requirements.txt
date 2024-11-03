@@ -12,3 +12,6 @@ xlsxwriter
 supabase
 psycopg2-binary
 tqdm
+langchain
+openai
+langgraph
