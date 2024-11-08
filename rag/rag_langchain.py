@@ -2,14 +2,8 @@
 
 import os
 from dotenv import load_dotenv
-from langchain_community.utilities import SQLDatabase
-from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
-from langchain.chains import create_sql_query_chain
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langgraph.prebuilt import create_react_agent
-from postgres_db import DBConnection
+from src.postgres_db import DBConnection
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
