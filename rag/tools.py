@@ -1,4 +1,4 @@
-get_table_schema_tool = {
+get_table_schema_tool: dict = {
 "type": "function",  # Add this line
     "function": {        # Wrap your existing function definition in a "function" key
         "name": "get_table_schema",

@@ -87,4 +87,17 @@ class DBConnection:
             return False
 
         # finally:
-        #     self.cleanup()
+        self.cleanup()
+
+    def execute_query(self, query: str):
+            try:
+                self.cur.execute(query)
+                results = self.cur.fetchall()
+                columns = [desc[0] for desc in self.cur.description]
+                df = pd.DataFrame(results, columns=columns)
+                return df
+            except Exception as e:
+                print(f"Error executing query: {e}")
+                return None
+            finally:
+                self.cleanup()

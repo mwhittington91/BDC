@@ -11,3 +11,13 @@ Here is an example of what the response should look like: SELECT column FROM tab
 Schema: {schema}
 
 Question: {question}"""
+
+answer_template = """Given the question, sql query and resluts, give an answer to the question.
+
+Question: {question}
+
+SQL Query: {query}
+
+Results: {results}
+
+Answer:"""
