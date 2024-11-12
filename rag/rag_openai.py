@@ -32,11 +32,12 @@ def chat_response(question: str,
         return completion.choices[0].message.tool_calls[0]
     else:
         return completion.choices[0].message.content
+    # return completion.choices[0].message
 
 question = "what is the schema of the bdc_info table?"
 response = chat_response(question, tools=[get_table_schema_tool])
 # print(response)
-tool_call = response.tool_calls[0]
+tool_call = response
 #print(tool_call)
 arguments = json.loads(tool_call.function.arguments)
 print(arguments)
@@ -50,8 +51,7 @@ print(schema)
 sql_prompt = sql_template.format(schema=schema, question=question)
 question2 = "How do download speeds differ between business_residential_code values?"
 sql_response = chat_response(question=question2, system_prompt=sql_prompt)
-query = sql_response.content
-
+query = sql_response
 results = db.execute_query(query)
 print(results)
 
@@ -60,4 +60,4 @@ print(answer)
 print("---")
 
 rag_answer = chat_response(question=answer)
-print(rag_answer.content)
+print(rag_answer)

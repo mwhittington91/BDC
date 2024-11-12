@@ -1,6 +1,6 @@
 import azure.functions as func
 import logging
-from src.speeddata import save_speedtest_data_to_excel
+from speeddata import save_speedtest_data_to_excel
 import httpx
 import os
 from dotenv import load_dotenv
@@ -24,7 +24,7 @@ def speedtest(req: func.HttpRequest) -> func.HttpResponse:
         try:
             # Create a temporary file
             with tempfile.NamedTemporaryFile(delete=False, prefix=f"{date}-Speedata-", suffix=".xlsx") as tmp_file:
-                
+
                 tmp_file_name = tmp_file.name
                 tmp_file.write(file_data.getvalue())
                 tmp_file.flush()

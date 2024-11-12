@@ -18,6 +18,7 @@ Question: {question}
 
 SQL Query: {query}
 
-Results: {results}
+Results:
+{results}
 
 Answer:"""
