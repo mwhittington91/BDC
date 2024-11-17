@@ -41,8 +41,8 @@ class DBConnection:
             self.conn.rollback()
             return False
 
-        finally:
-            self.cleanup()
+        # finally:
+        #     self.cleanup()
 
     def copy_data_to_postgres(self, csv_path: str, table_name: str):
         try:
@@ -66,8 +66,8 @@ class DBConnection:
             self.conn.rollback()
             return False
 
-        finally:
-            self.cleanup()
+        # finally:
+        #     self.cleanup()
 
     def get_table_schema(self, table_name: str):
         # Replace with your table name

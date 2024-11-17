@@ -32,32 +32,22 @@ def chat_response(question: str,
         return completion.choices[0].message.tool_calls[0]
     else:
         return completion.choices[0].message.content
-    # return completion.choices[0].message
 
-question = "what is the schema of the bdc_info table?"
-response = chat_response(question, tools=[get_table_schema_tool])
-# print(response)
-tool_call = response
-#print(tool_call)
-arguments = json.loads(tool_call.function.arguments)
-print(arguments)
-table_name = arguments["table_name"]
-print(table_name)
+def parse_tool_call(tool_call: str):
+    return json.loads(tool_call.function.arguments)
 
 db = DBConnection(connection_string)
-schema = db.get_table_schema(table_name)
-print(schema)
 
-sql_prompt = sql_template.format(schema=schema, question=question)
-question2 = "How do download speeds differ between business_residential_code values?"
-sql_response = chat_response(question=question2, system_prompt=sql_prompt)
-query = sql_response
-results = db.execute_query(query)
-print(results)
+def answerSQLQuestion(question: str, db: DBConnection):
+    schema = db.get_table_schema("bdc_info")
+    sql_prompt = sql_template.format(schema=schema, question=question)
+    sql_response = chat_response(question=question, system_prompt=sql_prompt)
+    results = db.execute_query(sql_response)
+    answer = answer_template.format(query=sql_response, results=results, question=question)
+    rag_answer = chat_response(question=answer)
+    return rag_answer
 
-answer = answer_template.format(query=query, results=results, question=question2)
+question = input("Ask a question: ")
+answer = answerSQLQuestion(question, db)
+print("---"*20)
 print(answer)
-print("---")
-
-rag_answer = chat_response(question=answer)
-print(rag_answer)
