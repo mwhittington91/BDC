@@ -38,7 +38,7 @@ def parse_tool_call(tool_call: str):
 
 db = DBConnection(connection_string)
 
-def answerSQLQuestion(question: str, db: DBConnection):
+def answer_sql_question(question: str, db: DBConnection):
     schema = db.get_table_schema("bdc_info")
     sql_prompt = sql_template.format(schema=schema, question=question)
     sql_response = chat_response(question=question, system_prompt=sql_prompt)
