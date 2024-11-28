@@ -1,12 +1,13 @@
 import os
 from dotenv import load_dotenv
 import pandas as pd
+from pandas.io.sql import get_schema
 from tqdm import tqdm
 import psycopg2
 
 load_dotenv()
 # Environment variables
-connection_string: str|None = os.getenv("CONNECTION_STRING")
+connection_string: str|None = str(os.getenv("CONNECTION_STRING"))
 
 class DBConnection:
     def __init__(self, connection_string: str = connection_string):
@@ -26,7 +27,7 @@ class DBConnection:
     def create_table_from_CSV(self, csv_path: str, table_name: str):
         df = pd.read_csv(csv_path)
 
-        schema: str = pd.io.sql.get_schema(df, table_name)
+        schema: str = get_schema(df, table_name)
 
         try:
             # Verify data was inserted
@@ -56,8 +57,12 @@ class DBConnection:
 
             # Verify data was inserted
             self.cur.execute(f"SELECT COUNT(*) FROM {table_name}")
-            count = self.cur.fetchone()[0]
-            print(f"Successfully inserted {count} rows")
+            result = self.cur.fetchone()
+            if result is not None:
+                count = result[0]
+                print(f"Successfully inserted {count} rows")
+            else:
+                print("No results returned from count query")
 
             return True
 
@@ -93,9 +98,11 @@ class DBConnection:
             try:
                 self.cur.execute(query)
                 results = self.cur.fetchall()
-                columns = [desc[0] for desc in self.cur.description]
-                df = pd.DataFrame(results, columns=columns)
-                return df
+                if self.cur.description:
+                    columns = pd.Index([desc[0] for desc in self.cur.description])
+                    df = pd.DataFrame(results, columns=columns)
+                    return df
+                return pd.DataFrame()
             except Exception as e:
                 print(f"Error executing query: {e}")
                 return None

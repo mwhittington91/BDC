@@ -1,8 +1,6 @@
 httpx
 pandas
 python-dotenv
-openpyxl
-xlsxwriter
 supabase
 psycopg2-binary
 tqdm
