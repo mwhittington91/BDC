@@ -12,9 +12,15 @@ engine = create_engine(db)
 
 Session = sessionmaker(bind=engine)
 
-def copy_data_to_postgres(csv_path: str, table_name: str, start_id: int):
-    """Copy data from a CSV file to a PostgreSQL table
-    Add an id column if it doesn't exist, ensure IDs are unique and not null"""
+def copy_data_to_postgres(csv_path: str, table_name: str, start_id: int) -> pd.DataFrame:
+    """Add 'id' column to CSV and copy data from a CSV file to a PostgreSQL table
+        args:
+            csv_path: str - path to the CSV file
+            table_name: str - name of the PostgreSQL table
+            start_id: int - starting ID for the 'id' column
+        returns:
+            pandas DataFrame - the data from the CSV file
+    """
 
     # Load CSV data into a pandas DataFrame
     df = pd.read_csv(csv_path)
