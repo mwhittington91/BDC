@@ -1,4 +1,3 @@
-import json
 import os
 import time
 
@@ -38,13 +37,12 @@ class BDC:
         category: str = "State",
         subcategory: str = "Fixed Broadband",
     ) -> list[str]:
-        reqUrl = f"{self.baseURL}/downloads/listAvailabilityData/{date}?category={category}&subcategory={subcategory}"
+        reqUrl = f"{self.baseURL}/downloads/listAvailabilityData/{date}"
         data = await self.client.get(url=reqUrl, headers=self.headersList)
         downloadList = [
             i for i in data.json()["data"] if "Satellite" not in i["file_name"]
         ]
-        downloadList.sort(key=lambda x: x["state_fips"])
-        downloadList = [json.dumps(i, indent=4, sort_keys=True) for i in downloadList]
+        # downloadList.sort(key=lambda x: x["state_fips"])
         return downloadList
 
     async def getDownloadFile(self, file_id: int):
