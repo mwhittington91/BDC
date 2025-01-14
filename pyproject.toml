@@ -1,0 +1,19 @@
+[project]
+dependencies = [
+    'httpx',
+    'pandas',
+    'python-dotenv',
+    'supabase',
+    'psycopg2-binary',
+    'tqdm',
+    'langchain',
+    'openai',
+    'pytest',
+    'streamlit',
+    'sqlalchemy',
+]
+name = "bdc"
+version = "0.1.0"
+description = "A package for the BDC project"
+readme = "README.md"
+requires-python = ">=3.11"

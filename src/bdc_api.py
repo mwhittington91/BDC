@@ -1,9 +1,8 @@
-# https://us-fcc.app.box.com/v/bdc-public-data-api-spec
-
-import httpx
+import json
 import os
 import time
-import json
+
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -66,7 +65,3 @@ class BDC:
                 print(e)
                 pass
         print(f"Missing files: {missing}")
-
-
-if __name__ == "__main__":
-    pass

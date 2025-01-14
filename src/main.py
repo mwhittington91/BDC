@@ -1,5 +1,7 @@
 import asyncio
-from src.bdc_api import BDC
+
+from bdc_api import BDC
+
 
 async def main():
     bdc = BDC()
@@ -12,6 +14,8 @@ async def main():
         print(date)
 
     date = input("Enter a date (eg.2023-12-31): ")
+    if date not in dates:
+        print("Invalid date")
     # downloadList = await bdc.getDownloadList(date=date)
     # await bdc.downloadFiles(downloadList)
 
