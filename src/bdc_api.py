@@ -36,7 +36,7 @@ class BDC:
         date: str = "2023-12-31",
         category: str = "State",
         subcategory: str = "Fixed Broadband",
-    ) -> list[str]:
+    ) -> list[dict]:
         reqUrl = f"{self.baseURL}/downloads/listAvailabilityData/{date}"
         data = await self.client.get(url=reqUrl, headers=self.headersList)
         downloadList = [

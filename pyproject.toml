@@ -11,6 +11,7 @@ dependencies = [
     'pytest',
     'streamlit',
     'sqlalchemy',
+    "dbfread",
 ]
 name = "bdc"
 version = "0.1.0"
