@@ -1,13 +1,23 @@
 import asyncio
 import json
+import logging
+import os
 import sys
 
+from dotenv import load_dotenv
+
 from bdc_api import BDC
-from utils import extractZip
+from utils import extractZip, upload_file_to_zapier
 
 sys.path.append("./")
 from db.postgres_db import DBConnection
 from db.schema import Base, copy_data_to_postgres, engine
+
+load_dotenv()
+
+ZAPIER_WEBHOOK = str(os.getenv("ZAPIER_WEBHOOK"))
+
+logging.basicConfig(level=logging.ERROR)
 
 
 async def main():
@@ -27,6 +37,7 @@ async def main():
     if date not in [str(i) for i in range(1, len(dates) + 1)]:
         print("Invalid date")
 
+    #
     date = dates[int(date)]
 
     # Drop and create tables
@@ -34,7 +45,10 @@ async def main():
     print("Tables dropped")
     Base.metadata.create_all(engine)
     print("Tables created")
+
+    # Start ID for the 'id' column
     start_id: int = 1
+
     downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
     print("Download List:")
     for file in downloadList[:5]:
@@ -43,15 +57,23 @@ async def main():
         file_id = file["file_id"]
         response = await bdc.getDownloadFile(file_id)
         extractZip(response=response, file_id=file["file_id"])
-        filename = f"{file['file_name']}.csv"
+        filename = f"{file['file_name']}"
         print(f"Extracted {filename}")
+
+        with open(f"exports/{filename}.csv", "rb") as f:
+            upload_file_to_zapier(f, ZAPIER_WEBHOOK, filename)
+
         db = DBConnection()
         table_name = "bdc_info_sqlalchemy"
 
-        copy_data_to_postgres(f"exports/{filename}", table_name, start_id)
+        copy_data_to_postgres(f"exports/{filename}.csv", table_name, start_id)
 
         start_id += db.get_rowcount(table_name)
-        print("---" * 10)
+
+        os.remove(f"exports/{filename}.csv")
+        print(f"Deleted {filename}")
+
+        print("-----" * 10)
 
 
 if __name__ == "__main__":
