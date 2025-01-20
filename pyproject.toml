@@ -4,14 +4,12 @@ dependencies = [
     'pandas',
     'python-dotenv',
     'supabase',
-    'psycopg2-binary',
     'tqdm',
-    'langchain',
-    'openai',
     'pytest',
     'streamlit',
     'sqlalchemy',
-    "dbfread",
+    "psycopg2-binary>=2.9.10",
+    "psycopg>=3.2.4",
 ]
 name = "bdc"
 version = "0.1.0"
