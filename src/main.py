@@ -15,20 +15,23 @@ async def main():
     print(f"Data Type: {data_type}")
     print("Dates:")
     for date in dates:
-        print(date)
+        print(f"for {date} enter {dates.index(date) + 1}")
 
     # Get the download list for a specific date
     date: str = input("Enter a date (eg.2023-12-31): ")
-    if date not in dates:
+    if date not in [str(i) for i in range(1, len(dates) + 1)]:
         print("Invalid date")
 
-    downloadList: list[dict] = await bdc.getDownloadList(date=date)
+    date = dates[int(date)]
+
+    downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
     print("Download List:")
     for file in downloadList[:5]:
         print(json.dumps(file, indent=4, sort_keys=True))
 
     for file in downloadList[:5]:
-        response = await bdc.getDownloadFile(file_id=file["file_id"])
+        file_id = file["file_id"]
+        response = await bdc.getDownloadFile(file_id)
         extractZip(response=response, file_id=file["file_id"])
         print(f"Extracted {file['file_name']}")
 

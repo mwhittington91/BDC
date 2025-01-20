@@ -33,14 +33,18 @@ class BDC:
 
     async def getDownloadList(
         self,
-        date: str = "2023-12-31",
-        category: str = "State",
-        subcategory: str = "Fixed Broadband",
+        date: str,
+        category: str,
+        subcategory: str = "",
     ) -> list[dict]:
-        reqUrl = f"{self.baseURL}/downloads/listAvailabilityData/{date}"
+        reqUrl = f"{self.baseURL}/downloads/listAvailabilityData/{date}?category={category}&subcategory={subcategory}"
         data = await self.client.get(url=reqUrl, headers=self.headersList)
         downloadList = [
-            i for i in data.json()["data"] if "Satellite" not in i["file_name"]
+            i
+            for i in data.json()["data"]
+            if "Satellite" not in i["file_name"]
+            and "Fixed Broadband" == i["technology_type"]
+            and "csv" == i["file_type"]
         ]
         # downloadList.sort(key=lambda x: x["state_fips"])
         return downloadList
