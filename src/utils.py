@@ -102,7 +102,7 @@ def extractZip(response, file_id):
     os.remove(path=zip_path)
 
 
-def upload_file_to_zapier(
+def upload_tempfile_to_zapier(
     file_data: io.BytesIO, zapier_webhook: str, filename: str
 ) -> bool:
     """
@@ -154,3 +154,20 @@ def upload_file_to_zapier(
                 os.unlink(temp_file.name)
             except Exception as e:
                 logging.warning(f"Failed to delete temporary file: {str(e)}")
+
+
+def upload_file_to_zapier(filepath: str, zapier_webhook: str, filename: str) -> bool:
+    with open(filepath, "rb") as f:
+        files = {"file": f}
+        response = httpx.post(
+            url=zapier_webhook + "?filename=" + filename,
+            files=files,
+            timeout=30,  # Add timeout
+        )
+
+    if response.status_code == 200:
+        logging.info("File uploaded to Zapier successfully")
+        return True
+    else:
+        logging.error(f"Failed to upload file. Status code: {response.status_code}")
+        return False

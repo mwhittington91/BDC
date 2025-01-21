@@ -17,14 +17,18 @@ load_dotenv()
 
 ZAPIER_WEBHOOK = str(os.getenv("ZAPIER_WEBHOOK"))
 
+CONNECTION_STRING = str(os.getenv("CONNECTION_STRING"))
+
 logging.basicConfig(level=logging.ERROR)
 
 
 async def main():
     # Initialize the BDC class
     bdc = BDC()
+
     # Get the list of dates
     dates = await bdc.getlistofDates()
+
     # Seperate the data_type and dates
     data_type, dates = dates
     print(f"Data Type: {data_type}")
@@ -32,13 +36,14 @@ async def main():
     for date in dates:
         print(f"for {date} enter {dates.index(date) + 1}")
 
-    # Get the download list for a specific date
+    # Get the date from the user from the index of the dates list
     date: str = input("Enter a date (eg.2023-12-31): ")
     if date not in [str(i) for i in range(1, len(dates) + 1)]:
         print("Invalid date")
+        sys.exit(1)
 
-    #
-    date = dates[int(date)]
+    # Convert the index to the date
+    date = dates[int(date) - 1]
 
     # Drop and create tables
     Base.metadata.drop_all(engine)
@@ -49,10 +54,11 @@ async def main():
     # Start ID for the 'id' column
     start_id: int = 1
 
+    # Get the download list for a specific date
     downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
     print("Download List:")
     for file in downloadList[:5]:
-        print(json.dumps(file, indent=4, sort_keys=True))
+        logging.info(json.dumps(file, indent=4, sort_keys=True))
 
         file_id = file["file_id"]
         response = await bdc.getDownloadFile(file_id)
@@ -60,10 +66,9 @@ async def main():
         filename = f"{file['file_name']}"
         print(f"Extracted {filename}")
 
-        with open(f"exports/{filename}.csv", "rb") as f:
-            upload_file_to_zapier(f, ZAPIER_WEBHOOK, filename)
+        upload_file_to_zapier(f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename)
 
-        db = DBConnection()
+        db = DBConnection(CONNECTION_STRING)
         table_name = "bdc_info_sqlalchemy"
 
         copy_data_to_postgres(f"exports/{filename}.csv", table_name, start_id)

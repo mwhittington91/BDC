@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 load_dotenv()
 
-db = str(os.getenv("SUPABASE_URL"))
+db = str(os.getenv("CONNECTION_STRING"))
 
 engine = create_engine(db)
 

@@ -1,17 +1,10 @@
-import os
-
 import pandas as pd
 import psycopg2
-from dotenv import load_dotenv
 from pandas.io.sql import get_schema
-
-load_dotenv()
-# Environment variables
-connection_string: str | None = str(os.getenv("SUPABASE_URL"))
 
 
 class DBConnection:
-    def __init__(self, connection_string: str = connection_string):
+    def __init__(self, connection_string: str):
         self.connection_string = connection_string
         self.conn = psycopg2.connect(connection_string)
         self.cur = self.conn.cursor()
@@ -118,10 +111,9 @@ class DBConnection:
                 count = result[0]
                 return count
             else:
-                print("No results returned from count query")
-                return None
+                raise psycopg2.Error("No results returned from count query")
         except psycopg2.Error as e:
             print("Error connecting to PostgreSQL:", e)
-            return None
+            raise e
         finally:
             self.cleanup()
