@@ -1,24 +1,14 @@
-import os
-
 import pandas as pd
-from dotenv import load_dotenv
-from sqlalchemy import Float, Integer, Text, create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-
-load_dotenv()
-
-db = str(os.getenv("CONNECTION_STRING"))
-
-engine = create_engine(db)
-
-Session = sessionmaker(bind=engine)
+from sqlalchemy import Engine, Float, Integer, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 def copy_data_to_postgres(
-    csv_path: str, table_name: str, start_id: int
+    engine: Engine, csv_path: str, table_name: str, start_id: int
 ) -> pd.DataFrame:
     """Add 'id' column to CSV and copy data from a CSV file to a PostgreSQL table
     args:
+        engine: Engine - SQLAlchemy engine
         csv_path: str - path to the CSV file
         table_name: str - name of the PostgreSQL table
         start_id: int - starting ID for the 'id' column
