@@ -11,10 +11,10 @@ from bdc_api import BDC
 from utils import extractZip, upload_file_to_zapier
 
 sys.path.append("./")
-from sqlalchemy import create_engine
+from sqlalchemy import MetaData, create_engine
 
 from db.postgres_db import DBConnection
-from db.schema import Base, copy_data_to_postgres
+from db.schema import copy_data_to_postgres, create_bdc_table
 
 load_dotenv()
 
@@ -22,13 +22,11 @@ ZAPIER_WEBHOOK = str(os.getenv("ZAPIER_WEBHOOK"))
 
 CONNECTION_STRING = str(os.getenv("UBUNTU_CONNECTION_STRING"))
 
-
 logging.basicConfig(level=logging.ERROR)
 
 
 async def main():
     engine = create_engine(CONNECTION_STRING)
-
 
     # Initialize the BDC class
     bdc = BDC()
@@ -52,10 +50,13 @@ async def main():
     # Convert the index to the date
     date: str = dates[int(date) - 1]
 
+    table_name = f"bdc_{date}"
+
     # Drop and create tables
-    Base.metadata.drop_all(engine)
+    metadata = MetaData()
+    metadata.drop_all(engine)
     print("Tables dropped")
-    Base.metadata.create_all(engine)
+    table = create_bdc_table(table_name)
     print("Tables created")
 
     # Start ID for the 'id' column
@@ -76,9 +77,9 @@ async def main():
         upload_file_to_zapier(f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename)
 
         db = DBConnection(CONNECTION_STRING)
-        table_name = "bdc_info_sqlalchemy"
+        table_name = f"bdc_{date}"
 
-        copy_data_to_postgres(engine, "exports/{filename}.csv", table_name, start_id)
+        copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name, start_id)
 
         start_id += db.get_rowcount(table_name)
 

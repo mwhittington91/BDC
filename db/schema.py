@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import Engine, Float, Integer, Text
+from sqlalchemy import Column, Engine, Float, Integer, MetaData, Table, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -44,8 +44,7 @@ class Base(DeclarativeBase):
 
 
 class BDCInfo(Base):
-    __tablename__ = "bdc_info_sqlalchemy"
-
+    __tablename__ = "bdc_info"
     frn: Mapped[int | None] = mapped_column(Integer, nullable=True)
     provider_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     brand_name: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -64,4 +63,27 @@ class BDCInfo(Base):
     h3_res8_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     id: Mapped[int | None] = mapped_column(
         Integer, primary_key=True, autoincrement=True
+    )
+
+
+metadata = MetaData()
+
+
+def create_bdc_table(table_name: str) -> Table:
+    return Table(
+        table_name,
+        metadata,
+        Column("frn", Integer, nullable=True),
+        Column("provider_id", Integer, nullable=True),
+        Column("brand_name", Text, nullable=True),
+        Column("location_id", Integer, nullable=True),
+        Column("technology", Integer, nullable=True),
+        Column("max_advertised_download_speed", Integer, nullable=True),
+        Column("max_advertised_upload_speed", Integer, nullable=True),
+        Column("low_latency", Integer, nullable=True),
+        Column("business_residential_code", Text, nullable=True),
+        Column("state_usps", Text, nullable=True),
+        Column("block_geoid", Float, nullable=True),
+        Column("h3_res8_id", Text, nullable=True),
+        Column("id", Integer, primary_key=True, autoincrement=True),
     )
