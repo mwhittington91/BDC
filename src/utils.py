@@ -103,7 +103,7 @@ def extractZip(response, file_id):
 
 
 def upload_tempfile_to_zapier(
-    file_data: io.BytesIO, zapier_webhook: str, filename: str
+    file_data: io.BytesIO, zapier_webhook: str, filename: str, table_name: str
 ) -> bool:
     """
     Upload a file to Zapier via webhook
@@ -131,7 +131,7 @@ def upload_tempfile_to_zapier(
         with open(temp_file_path, "rb") as f:
             files = {"file": f}
             response = httpx.post(
-                url=zapier_webhook + "?filename=" + filename,
+                url=f"{zapier_webhook}?filename={filename}&table_name={table_name}",
                 files=files,
                 timeout=30,  # Add timeout
             )
@@ -156,11 +156,13 @@ def upload_tempfile_to_zapier(
                 logging.warning(f"Failed to delete temporary file: {str(e)}")
 
 
-def upload_file_to_zapier(filepath: str, zapier_webhook: str, filename: str) -> bool:
+def upload_file_to_zapier(
+    filepath: str, zapier_webhook: str, filename: str, table_name: str
+) -> bool:
     with open(filepath, "rb") as f:
         files = {"file": f}
         response = httpx.post(
-            url=zapier_webhook + "?filename=" + filename,
+            url=f"{zapier_webhook}?filename={filename}&table_name={table_name}",
             files=files,
             timeout=30,  # Add timeout
         )

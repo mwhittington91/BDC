@@ -1,15 +1,20 @@
-import sys
-sys.path.append("./")
-from src.postgres_db import DBConnection
+import os
 
-box_path = "/Users/mwhittington/Library/CloudStorage/Box-Box/BDC 2023-12-31"
-csv_path = "exports/bdc_01_Cable_fixed_broadband_D23_14may2024.csv"
-csv_path2 = "exports/bdc_01_GSOSatellite_fixed_broadband_D23_14may2024.csv"
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+
+from db.schema import copy_data_to_postgres
+
+load_dotenv()
+
+CONNECTION_STRING = str(os.getenv("UBUNTU_CONNECTION_STRING"))
 
 
-#df = pd.read_csv(csv_path, encoding="utf-8")
-
-if __name__ == "__main__":
-    db = DBConnection()
-    # print(db.create_table_from_CSV(csv_path, "bdc_info"))
-    print(db.copy_data_to_postgres(csv_path, "bdc_info"))
+def test_copy_data_to_postgres():
+    engine = create_engine(CONNECTION_STRING)
+    copy_data_to_postgres(
+        engine,
+        "/Users/mwhittington/Library/CloudStorage/Box-Box/Broadband Data/2023-12-31/bdc_01_Cable_fixed_broadband_D23_14may2024.csv",
+        "bdc_info",
+    )
+    assert True

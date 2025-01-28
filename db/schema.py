@@ -4,7 +4,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 def copy_data_to_postgres(
-    engine: Engine, csv_path: str, table_name: str, start_id: int
+    engine: Engine, csv_path: str, table_name: str, start_id: int | None = None
 ) -> pd.DataFrame:
     """Add 'id' column to CSV and copy data from a CSV file to a PostgreSQL table
     args:
@@ -18,20 +18,20 @@ def copy_data_to_postgres(
 
     # Load CSV data into a pandas DataFrame
     df = pd.read_csv(csv_path)
-    row_count = len(df)
+    # row_count = len(df)
     print(f"{csv_path} loaded into pandas DataFrame")
 
     # Always generate new sequential IDs starting from the provided start_id
-    df["id"] = range(start_id, start_id + row_count)
-    df.to_csv(csv_path, index=False)
-    print(f"Generated IDs from {start_id} to {start_id + row_count - 1}")
+    # df["id"] = range(start_id, start_id + row_count)
+    # df.to_csv(csv_path, index=False)
+    # print(f"Generated IDs from {start_id} to {start_id + row_count - 1}")
 
     # Copy data to PostgreSQL
     with engine.begin() as connection:
         cursor = connection.connection.cursor()
         with open(csv_path, "r") as file:
             sql_copy_statement: str = (
-                f"COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS ','"
+                f"COPY {csv_path} FROM STDIN WITH CSV HEADER DELIMITER AS ','"
             )
             cursor.copy_expert(sql_copy_statement, file)
             print("Data copied to PostgreSQL")
@@ -66,10 +66,10 @@ class BDCInfo(Base):
     )
 
 
-metadata = MetaData()
-
-
-def create_bdc_table(table_name: str) -> Table:
+def create_bdc_table(
+    table_name: str,
+    metadata: MetaData,
+) -> Table:
     return Table(
         table_name,
         metadata,
@@ -85,5 +85,5 @@ def create_bdc_table(table_name: str) -> Table:
         Column("state_usps", Text, nullable=True),
         Column("block_geoid", Float, nullable=True),
         Column("h3_res8_id", Text, nullable=True),
-        Column("id", Integer, primary_key=True, autoincrement=True),
+        # Column("id", Integer, primary_key=True, autoincrement=True),
     )

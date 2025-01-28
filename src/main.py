@@ -13,7 +13,6 @@ from utils import extractZip, upload_file_to_zapier
 sys.path.append("./")
 from sqlalchemy import MetaData, create_engine
 
-from db.postgres_db import DBConnection
 from db.schema import copy_data_to_postgres, create_bdc_table
 
 load_dotenv()
@@ -50,17 +49,18 @@ async def main():
     # Convert the index to the date
     date: str = dates[int(date) - 1]
 
-    table_name = f"bdc_{date}"
+    table_name = f"{date}"
 
     # Drop and create tables
     metadata = MetaData()
     metadata.drop_all(engine)
     print("Tables dropped")
-    table = create_bdc_table(table_name)
+    create_bdc_table(table_name, metadata)
+    metadata.create_all(engine)
     print("Tables created")
 
     # Start ID for the 'id' column
-    start_id: int = 1
+    # start_id: int = 1
 
     # Get the download list for a specific date
     downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
@@ -74,14 +74,15 @@ async def main():
         filename = f"{file['file_name']}"
         print(f"Extracted {filename}")
 
-        upload_file_to_zapier(f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename)
+        upload_file_to_zapier(
+            f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, table_name
+        )
 
-        db = DBConnection(CONNECTION_STRING)
-        table_name = f"bdc_{date}"
+        # db = DBConnection(CONNECTION_STRING)
 
-        copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name, start_id)
+        copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
 
-        start_id += db.get_rowcount(table_name)
+        # start_id += db.get_rowcount(table_name)
 
         os.remove(f"exports/{filename}.csv")
         print(f"Deleted {filename}")
