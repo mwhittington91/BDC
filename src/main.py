@@ -49,45 +49,40 @@ async def main():
     # Convert the index to the date
     date: str = dates[int(date) - 1]
 
-    table_name = f"{date}"
+    table_name = f"bdc_{date}".replace("-", "_")
 
     # Drop and create tables
     metadata = MetaData()
-    metadata.drop_all(engine)
-    print("Tables dropped")
+    # metadata.drop_all(engine)
+    # print("Tables dropped")
     create_bdc_table(table_name, metadata)
     metadata.create_all(engine)
-    print("Tables created")
-
-    # Start ID for the 'id' column
-    # start_id: int = 1
+    logging.info(f"Table {table_name} created")
 
     # Get the download list for a specific date
     downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
-    print("Download List:")
-    for file in tqdm(downloadList[:5]):
-        logging.info(json.dumps(file, indent=4, sort_keys=True))
+    if not downloadList:
+        logging.error("No files to download")
+        sys.exit(1)
+    else:
+        for file in tqdm(downloadList[:5], desc="Downloading BDC files"):
+            logging.info(json.dumps(file, indent=4, sort_keys=True))
 
-        file_id = file["file_id"]
-        response = await bdc.getDownloadFile(file_id)
-        extractZip(response=response, file_id=file["file_id"])
-        filename = f"{file['file_name']}"
-        print(f"Extracted {filename}")
+            file_id = file["file_id"]
+            response = await bdc.getDownloadFile(file_id)
+            extractZip(response=response, file_id=file["file_id"])
+            filename = f"{file['file_name']}"
 
-        upload_file_to_zapier(
-            f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, table_name
-        )
+            logging.info(f"Extracted {filename}")
 
-        # db = DBConnection(CONNECTION_STRING)
+            upload_file_to_zapier(
+                f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, table_name
+            )
 
-        copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
+            copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
 
-        # start_id += db.get_rowcount(table_name)
-
-        os.remove(f"exports/{filename}.csv")
-        print(f"Deleted {filename}")
-
-        print("-----" * 10)
+            os.remove(f"exports/{filename}.csv")
+            logging.info(f"Deleted {filename}")
 
 
 if __name__ == "__main__":

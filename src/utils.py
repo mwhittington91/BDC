@@ -1,7 +1,6 @@
 import io
 import logging
 import os
-import sqlite3
 import tempfile
 import threading
 import time
@@ -55,16 +54,6 @@ def combineCSVsintoDataFrame(path: str = "./exports") -> DataFrame | None:
 
         print("Files have been combined into a DataFrame")
         return combined_df
-
-
-def dataFrametoSQL(df: DataFrame, db_path: str = "./.db", table_name: str = "Table 1"):
-    conn = sqlite3.connect(db_path)
-
-    df.to_sql(table_name, conn, if_exists="replace", index=False)
-
-    conn.close()
-
-    return "Files have been combined into a SQLite database"
 
 
 def dataFrametoStata(df: DataFrame, stata_path: str = "./bdc.dta"):
