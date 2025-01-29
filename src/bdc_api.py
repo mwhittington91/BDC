@@ -1,24 +1,17 @@
-import os
 import time
 
 import httpx
-from dotenv import load_dotenv
-
-load_dotenv()
-
-username = os.getenv("USERNAME")
-hash_value = os.getenv("API_KEY")
 
 
 class BDC:
-    def __init__(self):
+    def __init__(self, username: str, api_key: str):
         self.client = httpx.AsyncClient()
         self.baseURL = "https://broadbandmap.fcc.gov/api/public/map"
         self.headersList = {
             "Accept": "application/json",
             "User-Agent": "0.0.0",
             "username": username,
-            "hash_value": hash_value,
+            "hash_value": api_key,
         }
 
     async def getlistofDates(

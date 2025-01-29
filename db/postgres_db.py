@@ -12,12 +12,6 @@ class DBConnection:
     def __str__(self) -> str:
         return f'{self.conn.get_dsn_parameters()}, "\n"'
 
-    def cleanup(self):
-        if self.cur:
-            self.cur.close()
-        if self.conn:
-            self.conn.close()
-
     def create_table_from_CSV(self, csv_path: str, table_name: str):
         df = pd.read_csv(csv_path)
 
@@ -36,38 +30,6 @@ class DBConnection:
             self.conn.rollback()
             return False
 
-        # finally:
-        #     self.cleanup()
-
-    def copy_data_to_postgres(self, csv_path: str, table_name: str):
-        try:
-            # Execute a query
-            with open(csv_path, "r") as file:
-                sql = f"COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS ','"
-                self.cur.copy_expert(sql, file)
-
-            # Commit the transaction
-            self.conn.commit()
-
-            # Verify data was inserted
-            self.cur.execute(f"SELECT COUNT(*) FROM {table_name}")
-            result = self.cur.fetchone()
-            if result is not None:
-                count = result[0]
-                print(f"Successfully inserted {count} rows")
-            else:
-                print("No results returned from count query")
-
-            return True
-
-        except psycopg2.Error as e:
-            print("Error connecting to PostgreSQL:", e)
-            self.conn.rollback()
-            return False
-
-        # finally:
-        #     self.cleanup()
-
     def get_table_schema(self, table_name: str):
         # Replace with your table name
         query = f"""
@@ -85,10 +47,7 @@ class DBConnection:
             print("Error connecting to PostgreSQL:", e)
             return False
 
-        # finally:
-        self.cleanup()
-
-    def execute_query(self, query: str):
+    def execute_query(self, query: str) -> pd.DataFrame | None:
         try:
             self.cur.execute(query)
             results = self.cur.fetchall()
@@ -96,24 +55,21 @@ class DBConnection:
                 columns = pd.Index([desc[0] for desc in self.cur.description])
                 df = pd.DataFrame(results, columns=columns)
                 return df
-            return pd.DataFrame()
+            else:
+                return None
         except Exception as e:
             print(f"Error executing query: {e}")
             return None
-        finally:
-            self.cleanup()
 
     def get_rowcount(self, table_name: str) -> int:
         try:
             self.cur.execute(f"SELECT COUNT(*) FROM {table_name}")
             result = self.cur.fetchone()
             if result is not None:
-                count = result[0]
+                count: int = result[0]
                 return count
             else:
                 raise psycopg2.Error("No results returned from count query")
         except psycopg2.Error as e:
             print("Error connecting to PostgreSQL:", e)
             raise e
-        finally:
-            self.cleanup()
