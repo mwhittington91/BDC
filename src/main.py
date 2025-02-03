@@ -8,12 +8,9 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, create_engine, inspect
 from tqdm import tqdm
 
-from bdc_api import BDC
-from utils import extractZip, upload_file_to_zapier
-
-sys.path.append("./")
-
 from db.schema import copy_data_to_postgres, create_bdc_table
+from src.bdc_api import BDC
+from src.utils import extractZip, upload_file_to_zapier
 
 load_dotenv()
 
@@ -22,7 +19,7 @@ API_KEY = str(os.getenv("API_KEY"))
 
 ZAPIER_WEBHOOK = str(os.getenv("ZAPIER_WEBHOOK"))
 
-CONNECTION_STRING = str(os.getenv("UBUNTU_CONNECTION_STRING"))
+CONNECTION_STRING = str(os.getenv("CONNECTION_STRING"))
 
 logging.basicConfig(level=logging.WARNING)
 
