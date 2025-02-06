@@ -11,6 +11,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "psycopg>=3.2.4",
     "pyinstaller>=6.11.1",
+    "watchdog>=6.0.0",
 ]
 name = "Broadband_Data_Collection"
 version = "0.1.0"
