@@ -1,4 +1,16 @@
-.venv
+*.venv
 exports
 tests
 *.pdf
+*.git
+*.gitignore
+*.DS_Store
+*.vscode
+pyrightconfig.json
+__pycache__
+*.pytest_cache
+*.mypy_cache
+*.ropeproject
+Dockerfile
+README.md
+
