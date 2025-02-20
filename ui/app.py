@@ -7,7 +7,6 @@ import sys
 import streamlit as st
 from dotenv import load_dotenv
 from sqlalchemy import MetaData, create_engine, inspect
-from tqdm import tqdm
 
 sys.path.append("./")
 from db.schema import copy_data_to_postgres, create_bdc_table
@@ -58,43 +57,52 @@ async def main():
 
     table_name = f"bdc_{date}".replace("-", "_")
 
-    # Check if table exists
-    if table_name in inspector.get_table_names():
-        logging.warning(f"Table {table_name} already exists")
-        pass
-    else:
-        create_bdc_table(table_name, metadata)
-        metadata.create_all(engine)
-        logging.info(f"Table {table_name} created")
+    if st.button("Download files then upload to Box and Postgres"):
+        # Check if table exists
+        if table_name in inspector.get_table_names():
+            logging.warning(f"Table {table_name} already exists")
+            pass
+        else:
+            create_bdc_table(table_name, metadata)
+            metadata.create_all(engine)
+            logging.info(f"Table {table_name} created")
 
-    # Get the download list for a specific date
-    downloadList: list[dict] = await bdc.getDownloadList(date=date, category="State")
-    if not downloadList:
-        logging.error("No files to download")
-        sys.exit(1)
-    else:
-        for file in tqdm(downloadList[:5], desc="Downloading BDC files"):
-            logging.info(json.dumps(file, indent=4, sort_keys=True))
-
-            file_id = file["file_id"]
-            response = await bdc.getDownloadFile(file_id)
-            extractZip(response=response, file_id=file["file_id"])
-            filename = f"{file['file_name']}"
-
-            logging.info(f"Extracted {filename}")
-
-            await upload_file_to_zapier(
-                f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
-            )
-
-            copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
-
-            os.remove(f"exports/{filename}.csv")
-            logging.info(f"Deleted {filename}")
-
-        st.write(
-            f"Files uploaded to Box folder Broadband Data/{date} and {table_name} table created in database"
+        # Get the download list for a specific date
+        downloadList: list[dict] = await bdc.getDownloadList(
+            date=date, category="State"
         )
+        if not downloadList:
+            logging.error("No files to download")
+            sys.exit(1)
+        else:
+            my_bar = st.progress(0)
+
+            for file in downloadList[:5]:
+                my_bar.progress(
+                    downloadList.index(file) + 1,
+                    text=f"{file['file_name']} {downloadList.index(file) + 1}/{len(downloadList)}",
+                )
+                logging.info(json.dumps(file, indent=4, sort_keys=True))
+
+                file_id = file["file_id"]
+                response = await bdc.getDownloadFile(file_id)
+                extractZip(response=response, file_id=file["file_id"])
+                filename = f"{file['file_name']}"
+
+                logging.info(f"Extracted {filename}")
+
+                await upload_file_to_zapier(
+                    f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
+                )
+
+                copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
+
+                os.remove(f"exports/{filename}.csv")
+                logging.info(f"Deleted {filename}")
+
+            st.write(
+                f"Files uploaded to Box folder Broadband Data/{date} and {table_name} table created in database"
+            )
 
 
 if __name__ == "__main__":
