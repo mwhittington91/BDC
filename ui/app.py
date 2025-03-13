@@ -77,7 +77,7 @@ async def main():
         else:
             my_bar = st.progress(0)
 
-            for file in downloadList[:5]:
+            for file in downloadList:
                 my_bar.progress(
                     downloadList.index(file) + 1,
                     text=f"{file['file_name']} {downloadList.index(file) + 1}/{len(downloadList)}",

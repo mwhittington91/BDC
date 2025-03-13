@@ -68,7 +68,7 @@ async def main():
         logging.error("No files to download")
         sys.exit(1)
     else:
-        for file in tqdm(downloadList[:5], desc="Downloading BDC files"):
+        for file in tqdm(downloadList, desc="Downloading BDC files"):
             logging.info(json.dumps(file, indent=4, sort_keys=True))
 
             file_id = file["file_id"]
@@ -78,11 +78,11 @@ async def main():
 
             logging.info(f"Extracted {filename}")
 
+            copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
+
             await upload_file_to_zapier(
                 f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
             )
-
-            copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
 
             os.remove(f"exports/{filename}.csv")
             logging.info(f"Deleted {filename}")
