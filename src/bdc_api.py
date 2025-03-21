@@ -1,3 +1,4 @@
+import logging
 import time
 
 import httpx
@@ -44,11 +45,14 @@ class BDC:
 
     async def getDownloadFile(self, file_id: int):
         reqUrl = f"{self.baseURL}/downloads/downloadfile/availability/{file_id}"
-        response = await self.client.get(url=reqUrl, headers=self.headersList)
+        response = await self.client.get(
+            url=reqUrl,
+            headers=self.headersList,
+            timeout=httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=5.0),
+        )
         return response
 
     async def downloadFiles(self, files: list):
-        missing = []
         for file in files:
             index: int = files.index(file)
             try:
@@ -56,7 +60,6 @@ class BDC:
                 print(f"Downloaded {index + 1} of {len(files)}")
                 time.sleep(1)
             except Exception as e:
-                missing.append(index)
-                print(e)
+                logging.error(f"Failed to download file {index + 1}: {e}")
                 pass
-        print(f"Missing files: {missing}")
+        logging.info("Completed downloads with some failures")

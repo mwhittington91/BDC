@@ -5,12 +5,12 @@ import os
 import sys
 
 from dotenv import load_dotenv
-from sqlalchemy import MetaData, create_engine, inspect
+from sqlalchemy import MetaData, create_engine, inspect, text
 from tqdm import tqdm
 
 from db.schema import copy_data_to_postgres, create_bdc_table
 from src.bdc_api import BDC
-from src.utils import extractZip, upload_file_to_zapier
+from src.utils import check_file_size, extractZip, upload_file_to_zapier, zip_file
 
 load_dotenv()
 
@@ -80,16 +80,49 @@ async def main():
 
             copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
 
-            await upload_file_to_zapier(
-                f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
-            )
-
-            os.remove(f"exports/{filename}.csv")
-            logging.info(f"Deleted {filename}")
+            if check_file_size(f"exports/{filename}.csv", 100):
+                success = await upload_file_to_zapier(
+                    f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
+                )
+                if success:
+                    os.remove(f"exports/{filename}.csv")
+                    logging.info(f"Deleted {filename}")
+                else:
+                    logging.error(
+                        f"Failed to upload {filename}, keeping file for retry"
+                    )
+            else:
+                try:
+                    zipped_file = zip_file(f"exports/{filename}.csv")
+                    zipped_filename = f"{filename}.zip"
+                    success = await upload_file_to_zapier(
+                        str(zipped_file), ZAPIER_WEBHOOK, zipped_filename, date
+                    )
+                    if success:
+                        os.remove(zipped_file)
+                        os.remove(f"exports/{filename}.csv")
+                        logging.info(
+                            f"Successfully uploaded and deleted {zipped_filename}"
+                        )
+                    else:
+                        logging.error(
+                            f"Failed to upload {zipped_filename}, keeping files for retry"
+                        )
+                except Exception as e:
+                    logging.error(f"Error during zip and upload process: {str(e)}")
 
         print(
             f"Files uploaded to Box folder Broadband Data/{date} and {table_name} table created in database"
         )
+        # Print the number of rows in the table
+        with engine.connect() as connection:
+            result = connection.execute(text(f"SELECT COUNT(*) FROM {table_name}"))
+            for row in result:
+                print(f"Number of rows in {table_name}: {row[0]}")
+
+        # Close the connection
+        engine.dispose()
+        logging.info("Connection closed")
 
 
 if __name__ == "__main__":
