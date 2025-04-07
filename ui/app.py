@@ -91,11 +91,15 @@ async def main():
 
                 logging.info(f"Extracted {filename}")
 
-                await upload_file_to_zapier(
-                    f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
-                )
-
                 copy_data_to_postgres(engine, f"exports/{filename}.csv", table_name)
+
+                try:
+                    await upload_file_to_zapier(
+                        f"exports/{filename}.csv", ZAPIER_WEBHOOK, filename, date
+                    )
+                except Exception as e:
+                    logging.error(f"Error uploading file to Zapier: {e}")
+                    st.error(f"Error uploading file to Zapier: {e}")
 
                 os.remove(f"exports/{filename}.csv")
                 logging.info(f"Deleted {filename}")
