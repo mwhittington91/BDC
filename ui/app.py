@@ -46,12 +46,12 @@ async def main():
         dates,
     )
 
-    st.write("You selected:", date)
+    downloadList: list[dict] = await bdc.getDownloadList(
+            date=date, category="State"
+        )
 
-    # Get the date from the user from the index of the dates list
-    if date not in dates:
-        raise ValueError("Invalid date")
-        sys.exit(1)
+    st.write("You selected:", date)
+    st.write(f"The number of files to download is {len(downloadList)}")
 
     # Convert the index to the date
 
@@ -78,8 +78,9 @@ async def main():
             my_bar = st.progress(0)
 
             for file in downloadList:
+                progress = (downloadList.index(file) + 1) / len(downloadList)
                 my_bar.progress(
-                    downloadList.index(file) + 1,
+                    progress,
                     text=f"{file['file_name']} {downloadList.index(file) + 1}/{len(downloadList)}",
                 )
                 logging.info(json.dumps(file, indent=4, sort_keys=True))

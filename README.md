@@ -8,5 +8,4 @@ The data will be loaded into a PostgreSQL database.
 ### Resources
 https://us-fcc.app.box.com/v/bdc-public-data-api-spec
 
-### Pyinstaller Command
-pyinstaller --onefile --add-data ".env:." src/main.py
+

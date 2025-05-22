@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  streamlit:
+    build: .
+    container_name: bdc_streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - USERNAME=${USERNAME}
+      - API_KEY=${API_KEY}
+      - ZAPIER_WEBHOOK=${ZAPIER_WEBHOOK}
+      - CONNECTION_STRING=${CONNECTION_STRING}
+    volumes:
+      - .:/app

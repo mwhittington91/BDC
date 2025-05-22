@@ -51,6 +51,7 @@ async def main():
     # Convert the index to the date
     date: str = dates[int(date) - 1]
 
+    # replace the - with _ in the date because postgres does not allow - in the table name
     table_name = f"bdc_{date}".replace("-", "_")
 
     # Check if table exists
